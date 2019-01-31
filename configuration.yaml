@@ -1,0 +1,86 @@
+homeassistant:
+  # Name of the location where Home Assistant is running
+  name: Home
+  # Location required to calculate the time the sun rises and sets
+  latitude: 39.6025
+  longitude: -75.6945
+  # Impacts weather/sunrise data (altitude above sea level in meters)
+  elevation: 21
+  # metric for Metric, imperial for Imperial
+  unit_system: imperial
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: America/New_York
+  customize: !include includes/customizes.yaml
+
+
+light: !include includes/lights.yaml
+switch: !include includes/switches.yaml
+automation: !include automations.yaml
+config:
+media_player: !include includes/media_players.yaml
+sensor: !include includes/sensors.yaml
+binary_sensor: !include includes/binary_sensors.yaml
+script: !include scripts.yaml
+group: !include includes/groups.yaml
+device_tracker: !include includes/device_trackers.yaml
+#input_slider: !include includes/input_sliders.yaml
+#zone: !include includes/zones.yaml
+#rest_command: !include includes/rest_commands.yaml
+shell_command: !include includes/shell_commands.yaml
+zwave: !include includes/zwaves.yaml
+input_select: !include includes/input_selects.yaml
+lutron_caseta_pro: !include includes/caseta.yaml
+cloud: !include includes/clouds.yaml
+cover: !include includes/covers.yaml
+notify: !include includes/notifys.yaml
+timer: !include includes/timers.yaml
+input_boolean: !include includes/input_booleans.yaml
+homekit: !include includes/homekits.yaml
+ios: !include includes/ios.yaml
+scene: !include includes/scenes.yaml
+#istory: !include includes/historys.yaml
+
+# Enables the frontend
+frontend:
+
+mqtt:
+  broker: 192.168.1.50
+
+
+http:
+  api_password: omitted
+
+
+
+
+
+
+climate:
+  platform: honeywell
+  username: "omitted"
+  password: "omitted"
+  scan_interval: 600
+  region: us
+
+#harmony
+remote:
+  - platform: harmony
+    name: 'TV'
+    host: 192.168.1.23
+
+
+# Checks for available updates
+updater:
+
+# Discover some devices automatically
+discovery:
+  ignore:
+    - logitech_mediaserver
+    - kodi
+#    - google_cast
+
+
+
+tts:
+  platform: google
+

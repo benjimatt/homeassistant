@@ -1,0 +1,806 @@
+- id: turn_on_living_room_light_motion
+  alias: Turn on living room light motion
+  trigger:
+  - entity_id: binary_sensor.living_room_motion_sensor
+    platform: state
+    to: 'on'
+  condition:
+  - after: '8:30:01'
+    before: '19:30:00'
+    condition: time
+  action:
+  - entity_id: light.living_room_living_room, light.living_room_spot_lights
+    service: light.turn_on
+- id: turn_off_living_room_light_motion
+  alias: Turn off living room light motion
+  trigger:
+  - entity_id: binary_sensor.living_room_motion_sensor
+    for:
+      minutes: 10
+    platform: state
+    to: 'off'
+  action:
+  - entity_id: light.living_room_living_room, light.living_room_spot_lights
+    service: light.turn_off
+- id: turn_on_hallway_light_motion
+  alias: Turn on hallway light motion
+  trigger:
+  - entity_id: binary_sensor.hallway_motion_sensor
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.hallway_motion2_sensor
+    platform: state
+    to: 'on'
+  condition:
+  - condition: state
+    entity_id: light.hallway_hallway
+    state: 'off'
+  action:
+  - data_template:
+      entity_id: light.hallway_hallway, light.hallway_floor_lamps
+      brightness: "{% if now().strftime('%H')| int >= 22 %}\n  10\n{% elif now().strftime('%H')|\
+        \ int < 7 %}\n  10\n{% elif now().strftime('%H')| int >= 7 %}\n  255\n{% endif\
+        \ %}"
+      transition: 1
+    service: light.turn_on
+- id: turn_off_hallway_light_motion
+  alias: Turn off hallway light motion
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.hallway_motion_sensor
+    to: 'off'
+    for:
+      seconds: 60
+  - platform: state
+    entity_id: binary_sensor.hallway_motion2_sensor
+    to: 'off'
+    for:
+      seconds: 60
+  action:
+  - entity_id: light.hallway_hallway, light.hallway_floor_lamps
+    service: light.turn_off
+- id: turn_on_bedroom_light_motion
+  alias: Turn on bedroom light motion
+  trigger:
+  - entity_id: binary_sensor.bedroom_motion_sensor
+    platform: state
+    to: 'on'
+  condition:
+  - after: '10:00:00'
+    before: '22:00:00'
+    condition: time
+  action:
+  - data:
+      entity_id: light.master_bedroom_bedroom, light.master_bedroom_main_lights
+    service: light.turn_on
+- id: turn_off_bedroom_light_motion
+  alias: Turn off bedroom light motion
+  trigger:
+  - entity_id: binary_sensor.bedroom_motion_sensor
+    for:
+      minutes: 5
+    from: 'on'
+    platform: state
+    to: 'off'
+  action:
+  - entity_id: light.master_bedroom_bedroom, light.master_bedroom_main_lights
+    service: light.turn_off
+- id: turn_on_kitchen_light_motion
+  alias: Turn on kitchen light motion
+  trigger:
+  - entity_id: binary_sensor.kitchen_motion_sensor
+    platform: state
+    to: 'on'
+  condition:
+  - condition: state
+    entity_id: light.kitchen_kitchen
+    state: 'off'
+  action:
+#  - service: light.turn_on
+#    entity_id: light.kitchen_Leds
+  - data_template:
+      brightness: "{% if now().strftime('%H')| int >= 22 %}\n  0\n{% elif now().strftime('%H')|\
+        \ int < 7 %}\n  0\n{% elif now().strftime('%H')| int >= 7 %}\n  255\n{% endif\
+        \ %}"
+      entity_id: light.kitchen_kitchen
+      transition: 1
+    service: light.turn_on
+- id: turn_off_kitchen_light_motion
+  alias: Turn off kitchen light motion
+  trigger:
+  - entity_id: binary_sensor.kitchen_motion_sensor
+    for:
+      minutes: 3
+    from: 'on'
+    platform: state
+    to: 'off'
+  action:
+  - service: light.turn_off
+    entity_id: light.kitchen_kitchen, light.kitchen_Leds
+- id: turn_on_bathroom_light_motion
+  alias: Turn on bathroom light motion
+  trigger:
+  - entity_id: binary_sensor.bathroom_motion_sensor
+    platform: state
+    to: 'on'
+  condition:
+  - condition: state
+    entity_id: light.bedroom_bathroom_cove_lights
+    state: 'off'
+  action:
+  - data:
+      entity_id: script.bathroom_day_light
+    service: script.turn_on
+- id: turn_off_bathroom_light_motion
+  alias: Turn off bathroom light motion
+  trigger:
+  - entity_id: binary_sensor.bathroom_motion_sensor
+    for:
+      minutes: 15
+    from: 'on'
+    platform: state
+    to: 'off'
+  action:
+  - data:
+      entity_id: light.bedroom_bathroom_cove_lights
+    service: light.turn_off
+- id: turn_off_bathroom_speakers
+  alias: Turn off bathroom speakers
+  trigger:
+  - entity_id: light.bedroom_bathroom_cove_lights
+    platform: state
+    to: 'off'
+  condition:
+  - condition: state
+    entity_id: media_player.all_speakers
+    state: 'off'
+  action:
+  - data:
+      entity_id: media_player.bathroom_speakers
+    service: media_player.turn_off
+- id: turn_on_bathroom2_light_motion
+  alias: Turn on bathroom2 light motion
+  trigger:
+  - entity_id: binary_sensor.bathroom2_motion_sensor
+    platform: state
+    to: 'on'
+  condition:
+  - condition: state
+    entity_id: light.main_bathroom_cove_lights
+    state: 'off'
+  action:
+  - service: light.turn_on
+    data_template:
+      brightness: "{% if now().strftime('%H')| int >= 22 %}\n  10\n{% elif now().strftime('%H')|\
+        \ int < 7 %}\n  10\n{% elif now().strftime('%H')| int >= 7 %}\n  255\n{% endif\
+        \ %}"
+      transition: 1
+    entity_id: light.main_bathroom_cove_lights
+- id: turn_off_bathroom2_light_motion
+  alias: Turn off bathroom2 light motion
+  trigger:
+  - entity_id: binary_sensor.bathroom2_motion_sensor
+    for:
+      minutes: 15
+    from: 'on'
+    platform: state
+    to: 'off'
+  action:
+  - data:
+      entity_id: light.main_bathroom_cove_lights
+    service: light.turn_off
+- id: turn_off_bathroom2_speaker
+  alias: Turn off bathroom2 speaker
+  trigger:
+  - entity_id: light.main_bathroom_cove_lights
+    platform: state
+    to: 'off'
+  condition:
+  - condition: state
+    entity_id: media_player.all_speakers
+    state: 'off'
+  action:
+  - data:
+      entity_id: media_player.bathroom_speaker
+    service: media_player.turn_off
+- id: turn_on_guest_bedroom_light_motion
+  alias: Turn on guest bedroom light motion
+  trigger:
+  - entity_id: binary_sensor.guest_bedroom_motion_sensor
+    platform: state
+    to: 'on'
+  condition:
+  - condition: state
+    entity_id: light.guest_room_main_lights
+    state: 'off'
+  action:
+  - service: light.turn_on
+    data_template:
+      brightness: "{% if now().strftime('%H')| int >= 22 %}\n  10\n{% elif now().strftime('%H')|\
+        \ int < 7 %}\n  10\n{% elif now().strftime('%H')| int >= 7 %}\n  255\n{% endif\
+        \ %}"
+      transition: 1
+    entity_id: light.guest_room_main_lights
+- id: turn_off_guest_bedroom_light_motion
+  alias: Turn off guest bedroom light motion
+  trigger:
+  - entity_id: binary_sensor.guest_bedroom_motion_sensor
+    for:
+      minutes: 7
+    from: 'on'
+    platform: state
+    to: 'off'
+  action:
+  - data:
+      entity_id: light.guest_room_main_lights
+    service: light.turn_off
+- id: living_room_pico_middle_button
+  alias: living room pico middle button
+  trigger:
+  - platform: state
+    entity_id: sensor.living_room_pico
+    to: '2'
+  action:
+  - entity_id: switch.shades
+    service: switch.turn_on
+- id: living_room_pico_middle_button_hold
+  alias: living room pico middle button hold
+  trigger:
+  - platform: state
+    entity_id: sensor.living_room_pico
+    to: '2'
+    for:
+      seconds: '2'
+  action:
+  - entity_id: switch.shades
+    service: switch.turn_off
+- id: hallway_pico_middle_button
+  alias: hallway pico middle button
+  trigger:
+  - entity_id: sensor.hallway_hallway1
+    platform: state
+    to: '2'
+  action:
+  - entity_id: script.everything_off
+    service: script.turn_on
+- id: master_bedroom_pico_middle_button
+  alias: master bedroom pico middle button
+  trigger:
+  - platform: state
+    entity_id: sensor.master_bedroom_bedroom_pico
+    to: '2'
+  action:
+  - entity_id: script.everything_off
+    service: script.turn_on
+- id: master_bedroom_pico_down_button_hold
+  alias: master bedroom pico down button hold
+  trigger:
+  - platform: state
+    entity_id: sensor.master_bedroom_bedroom_pico
+    to: '4'
+    for:
+      seconds: '2'
+  action:
+  - entity_id: automation.turn_on_bedroom_light_motion
+    service: automation.turn_off
+- action:
+  - data:
+      entity_id: automation.turn_on_bedroom_light_motion
+    service: automation.turn_on
+  alias: turn_on_bedroom_light_motion_autostart
+  condition: []
+  id: '1518057945380'
+  trigger:
+  - at: '10:00:00'
+    platform: time
+- id: Library_pico_middle_button
+  alias: Library pico middle button
+  trigger:
+  - entity_id: sensor.library_pico
+    platform: state
+    to: '2'
+  action:
+  - entity_id: cover.shades
+    service: cover.stop_cover
+- id: Library_pico_on_button
+  alias: Library pico on button
+  trigger:
+  - entity_id: sensor.library_pico
+    platform: state
+    to: '1'
+  action:
+  - entity_id: cover.shades
+    service: cover.open_cover
+- id: Library_pico_off_button
+  alias: Library pico off button
+  trigger:
+  - entity_id: sensor.library_pico
+    platform: state
+    to: '4'
+  action:
+  - entity_id: cover.shades
+    service: cover.close_cover
+- id: Library_pico_up_button
+  alias: Library pico up button
+  trigger:
+  - entity_id: sensor.library_pico
+    platform: state
+    to: '16'
+  action:
+  - service: cover.set_cover_position
+    data:
+      entity_id: cover.shades
+      position: '54'
+- id: Library_pico_down_button
+  alias: Library pico down button
+  trigger:
+  - entity_id: sensor.library_pico
+    platform: state
+    to: '8'
+  action:
+  - service: cover.set_cover_position
+    data:
+      entity_id: cover.shades
+      position: '54'
+- id: notify_door_locked
+  alias: notify door locked
+  trigger:
+  - entity_id: lock.augustlock_locked
+    from: unlocked
+    platform: state
+    to: locked
+  action:
+  - service: notify.gmail_send
+    data:
+      title: Front Door Locked
+      message: Front Door Has Been Locked
+  condition:
+    condition: and
+    conditions:
+    - condition: numeric_state
+      entity_id: sensor.home_occupancy_benji
+      below: '20'
+    - condition: numeric_state
+      entity_id: sensor.home_occupancy_bridget
+      below: '20'
+- id: notify_door_unlocked
+  alias: notify door unlocked
+  trigger:
+  - entity_id: lock.augustlock_locked
+    from: locked
+    platform: state
+    to: unlocked
+  action:
+  - service: notify.gmail_send
+    data:
+      title: Front Door Unlocked
+      message: Front Door Has Been Unlocked
+  condition:
+    condition: and
+    conditions:
+    - condition: numeric_state
+      entity_id: sensor.home_occupancy_benji
+      below: '20'
+    - condition: numeric_state
+      entity_id: sensor.home_occupancy_bridget
+      below: '20'
+- id: benji_boolean
+  alias: benji boolean
+  trigger:
+    platform: mqtt
+    topic: location/omitted
+  action:
+  - entity_id: input_boolean.benji_home
+    service: input_boolean.turn_on
+  - data_template:
+      topic: location/scan/arrive
+    service: mqtt.publish
+- id: bridget_boolean
+  alias: bridget boolean
+  trigger:
+    platform: mqtt
+    topic: location/omitted
+  action:
+  - entity_id: input_boolean.bridget_home
+    service: input_boolean.turn_on
+  - data_template:
+      topic: location/scan/arrive
+    service: mqtt.publish
+- id: deactivate_bluetooth_sensors
+  alias: deactivate bluetooth sensors
+  initial_state: 'off'
+  trigger:
+  - entity_id: input_boolean.home_timer_status
+    platform: state
+    to: 'on'
+  action:
+  - service: shell_command.stop_bluetooth_18
+  - service: shell_command.stop_bluetooth_19
+  - service: shell_command.stop_bluetooth_20
+  - entity_id: automation.deactivate_bluetooth_sensors
+    service: automation.turn_off
+  condition:
+  - condition: state
+    entity_id: binary_sensor.benji
+    state: 'on'
+    for:
+      minutes: 3
+  - condition: state
+    entity_id: binary_sensor.bridget
+    state: 'on'
+    for:
+      minutes: 3
+- id: activate_bluetooth_sensors
+  alias: activate bluetooth sensors
+  initial_state: 'off'
+  trigger:
+  - entity_id: sensor.front_door
+    platform: state
+  action:
+  - service: shell_command.start_bluetooth_18
+  - service: shell_command.start_bluetooth_19
+  - service: shell_command.start_bluetooth_20
+  - data:
+      entity_id: automation.deactivate_bluetooth_sensors
+    service: automation.turn_on
+  - data:
+      entity_id: timer.home_status
+    service: timer.cancel
+  - entity_id: input_boolean.home_timer_status
+    service: input_boolean.turn_off
+  - data:
+      entity_id: timer.home_status
+    service: timer.start
+- id: trigger_depart_scan
+  alias: trigger depart scan
+  trigger:
+  - entity_id: sensor.front_door
+    platform: numeric_state
+    above: 22
+  action:
+  - entity_id: script.mqtt_depart
+    service: script.turn_on
+- id: trigger_depart_scan_cancel
+  alias: trigger depart scan cancel
+  trigger:
+  - entity_id: sensor.front_door
+    platform: numeric_state
+    below: 23
+  action:
+  - entity_id: script.mqtt_depart
+    service: script.turn_off
+- id: home_status
+  alias: home status
+  initial_state: 'off'
+  trigger:
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.home_status
+  action:
+  - entity_id: input_boolean.home_timer_status
+    service: input_boolean.turn_on
+
+- id: Benji_Home
+  alias: Benji Home
+  trigger:
+  - above: '30'
+    entity_id: sensor.home_occupancy_benji
+    platform: numeric_state
+  - entity_id: input_boolean.benji_home
+    platform: state
+    to: 'on'
+  action:
+  - service_template: >
+      {% if states.sensor.home_occupancy_bridget.state | float < 25 %}
+        script.benji_home
+      {% else %}
+        script.benji_home_second
+      {% endif %}
+
+- id: benji_not_home
+  alias: Benji not Home
+  trigger:
+  - below: '30'
+    entity_id: sensor.home_occupancy_benji
+    platform: numeric_state
+  action:
+  - service_template: >
+      {% if states.sensor.home_occupancy_bridget.state | float < 25 %}
+        script.benji_not_home_complete
+      {% else %}
+        script.benji_not_home
+      {% endif %}
+
+
+- id: Bridget_Home
+  alias: Bridget Home
+  trigger:
+  - above: '30'
+    entity_id: sensor.home_occupancy_bridget
+    platform: numeric_state
+  - entity_id: input_boolean.bridget_home
+    platform: state
+    to: 'on'
+  action:
+  - service_template: >
+      {% if states.sensor.home_occupancy_benji.state | float < 25 %}
+        script.bridget_home
+      {% else %}
+        script.bridget_home_second
+      {% endif %}
+
+- id: bridget_not_home
+  alias: Bridget not Home
+  trigger:
+  - below: '30'
+    entity_id: sensor.home_occupancy_bridget
+    platform: numeric_state
+  action:
+  - service_template: >
+      {% if states.sensor.home_occupancy_benji.state | float < 25 %}
+        script.bridget_not_home_complete
+      {% else %}
+        script.bridget_not_home
+      {% endif %}
+
+- id: Benji_Home_greeting
+  alias: Benji Home Greeting
+  initial_state: 'off'
+  trigger:
+  - entity_id: sensor.front_door
+    platform: numeric_state
+    below: 23
+  action:
+  - entity_id: script.benji_greeting_one
+    service: script.turn_on
+  condition:
+  - condition: numeric_state
+    entity_id: sensor.home_occupancy_benji
+    above: '30'
+- id: Bridget_Home_greeting
+  alias: Bridget Home Greeting
+  initial_state: 'off'
+  trigger:
+  - entity_id: binary_sensor.hallway_motion_sensor
+    platform: state
+    to: 'on'
+  - entity_id: binary_sensor.hallway_motion2_sensor
+    platform: state
+    to: 'on'
+  action:
+  - entity_id: script.bridget_greeting
+    service: script.turn_on
+  condition:
+  - condition: numeric_state
+    entity_id: sensor.home_occupancy_bridget
+    above: '30'
+
+
+- id: '1535063937633'
+  alias: kitchen switch link on
+  trigger:
+  - entity_id: media_player.kitchen_speakers
+    from: 'off'
+    platform: state
+    to: 'idle'
+  - entity_id: media_player.kitchen_speakers
+    from: 'idle'
+    platform: state
+    to: 'playing'
+  - entity_id: media_player.kitchen_speakers
+    from: 'idle'
+    platform: state
+    to: 'paused'
+  - entity_id: media_player.kitchen_speakers
+    from: 'off'
+    platform: state
+    to: 'playing'
+  - entity_id: media_player.kitchen_speakers
+    from: 'off'
+    platform: state
+    to: 'paused'
+  - entity_id: media_player.all_speakers
+    platform: state
+    to: 'playing'
+  condition: []
+  action:
+  - data:
+      entity_id: switch.kitchen_speakers
+    service: switch.turn_on
+- id: '1535064037301'
+  alias: kitchen switch link off
+  trigger:
+  - entity_id: media_player.kitchen_speakers
+    from: 'idle'
+    platform: state
+    to: 'off'
+  - entity_id: media_player.kitchen_speakers
+    from: 'playing'
+    platform: state
+    to: 'off'
+  - entity_id: media_player.kitchen_speakers
+    from: 'paused'
+    platform: state
+    to: 'off'
+  - entity_id: media_player.all_speakers
+    platform: state
+    to: 'off'
+  condition: []
+  action:
+  - data:
+      entity_id: switch.kitchen_speakers
+    service: switch.turn_off
+- id: bathroom_speakers_switch_link_on
+  alias: bathroom speakers switch link on
+  trigger:
+  - entity_id: media_player.bathroom_speakers
+    from: 'off'
+    platform: state
+    to: 'idle'
+  - entity_id: media_player.bathroom_speakers
+    from: 'idle'
+    platform: state
+    to: 'playing'
+  - entity_id: media_player.bathroom_speakers
+    from: 'idle'
+    platform: state
+    to: 'paused'
+  - entity_id: media_player.bathroom_speakers
+    from: 'off'
+    platform: state
+    to: 'playing'
+  - entity_id: media_player.bathroom_speakers
+    from: 'off'
+    platform: state
+    to: 'paused'
+  - entity_id: media_player.all_speakers
+    platform: state
+    to: 'playing'
+  condition: []
+  action:
+  - data:
+      entity_id: switch.bathroom_speakers
+    service: switch.turn_on
+- id: bathroom_speakers_switch_link_off
+  alias: bathroom speakers switch link off
+  trigger:
+  - entity_id: media_player.bathroom_speakers
+    from: idle
+    platform: state
+    to: 'off'
+  - entity_id: media_player.bathroom_speakers
+    from: playing
+    platform: state
+    to: 'off'
+  - entity_id: media_player.bathroom_speakers
+    from: paused
+    platform: state
+    to: 'off'
+  - entity_id: media_player.all_speakers
+    platform: state
+    to: 'off'
+  condition: []
+  action:
+  - data:
+      entity_id: switch.bathroom_speakers
+    service: switch.turn_off
+- id: '1535068797206'
+  alias: bedroom fan on
+  trigger:
+  - at: '22:00:00'
+    platform: time
+  condition: []
+  action:
+  - data:
+      entity_id: switch.bedroom_fan
+    service: switch.turn_on
+- id: '1535068914930'
+  alias: bedroom fan off
+  trigger:
+  - at: 07:15:00
+    platform: time
+  condition: []
+  action:
+  - data:
+      entity_id: switch.bedroom_fan
+    service: switch.turn_off
+- id: dead_node_detection
+  alias: dead node detection
+  trigger:
+    platform: template
+    value_template: "{%- for state in states.zwave -%}\n  {%- if state.state == \"\
+      dead\" -%}\n    true\n  {%- endif -%}\n{%- endfor -%}\n"
+  action:
+  - service: notify.gmail_send
+    data:
+      title: dead node detected
+      message: 'node {{ trigger.entity_id }}  has died
+
+        '
+  - service: notify.gmail_send
+    data:
+      title: dead node detected
+      message: you have a dead zwave node
+- id: start_homekit
+  alias: start homekit
+  trigger:
+  - platform: homeassistant
+    event: start
+  action:
+  - delay: 00:00:05
+  - service: homekit.start
+  - delay: 00:00:50
+  - service: mqtt.publish
+    data:
+      topic: location/scan/restart
+      payload: location/scan/restart
+- id: benji_mqtt_home
+  alias: benji mqtt home
+  trigger:
+  - above: '30'
+    entity_id: sensor.home_occupancy_benji
+    platform: numeric_state
+  action:
+  - service: mqtt.publish
+    data:
+      topic: presence/benji
+      payload: home
+      retain: 'true'
+- id: bridget_mqtt_home
+  alias: bridget mqtt home
+  trigger:
+  - above: '30'
+    entity_id: sensor.home_occupancy_bridget
+    platform: numeric_state
+  action:
+  - service: mqtt.publish
+    data:
+      topic: presence/bridget
+      payload: home
+      retain: 'true'
+  - service: notify.ios_bridgets_iphone
+    data:
+      message: Something happened at home!
+      data:
+        push:
+          badge: 5
+          category: alarm
+        action_data:
+          entity_id: light.test
+          my_custom_data: foo_bar
+- id: '1541853612604'
+  alias: hallway sync
+  trigger:
+  - entity_id: light.hallway_hallway
+    platform: state
+    to: 'off'
+  condition: []
+  action:
+  - data:
+      entity_id: light.hallway_floor_lamps
+    service: light.turn_off
+
+- id: power_tv_leds_off
+  alias: power tv leds off
+  trigger:
+  - entity_id: sensor.smart_tv_power
+    platform: numeric_state
+    below: 1
+  action:
+  - entity_id: switch.tv_leds
+    service: switch.turn_off
+  - entity_id: automation.power_tv_leds_on
+    service: automation.turn_on
+
+- id: power_tv_leds_on
+  alias: power tv leds on
+  trigger:
+  - entity_id: sensor.smart_tv_power
+    platform: numeric_state
+    above: 60
+  action:
+  - entity_id: switch.tv_leds
+    service: switch.turn_on
+  - entity_id: automation.power_tv_leds_on
+    service: automation.turn_off

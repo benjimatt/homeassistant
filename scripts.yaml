@@ -1,0 +1,514 @@
+everything_on:
+  sequence:
+  - service: script.turn_tv_on
+  - service: cover.open_cover
+    data:
+      entity_id: cover.shades
+  - service: light.turn_on
+    data:
+      entity_id: light.living_room_living_room
+
+everything_off:
+  sequence:
+  - service: light.turn_off
+    data:
+      entity_id: group.home_lights
+  - service: cover.close_cover
+    data:
+      entity_id: cover.shades
+  - service: script.turn_tv_off
+  - service: media_player.turn_off
+    data:
+      entity_id: all
+
+were_gone:
+  sequence:
+  - service: script.everything_off
+  - service: notify.gmail_send
+    data:
+      title: Home Is Empty
+      message: The Residence is Now Empty
+
+turn_tv_off:
+  sequence:
+  - wait_template: "{{ states.switch.smart_tv.attributes.power_consumption|int > 1 }}"
+    timeout: '00:00:15'
+    continue_on_timeout: 'false'
+  - service: remote.send_command
+    data:
+      entity_id: remote.tv
+      command:
+      - PowerToggle
+      device: 58864092
+  - delay: 00:00:15
+  - wait_template: "{{ states.switch.smart_tv.attributes.power_consumption|int > 1 }}"
+    timeout: '00:00:15'
+    continue_on_timeout: 'false'
+  - alias: ''
+    data:
+      entity_id: switch.smart_tv
+    service: switch.turn_off
+  - delay: 00:00:05
+  - data:
+      entity_id: switch.smart_tv
+    service: switch.turn_on
+  alias: turn tv off
+turn_tv_on:
+  sequence:
+  - wait_template: "{{ states.switch.smart_tv.attributes.power_consumption|int < 1 }}"
+    timeout: '00:00:15'
+    continue_on_timeout: 'false'
+  - service: remote.send_command
+    data:
+      entity_id: remote.tv
+      command:
+      - PowerToggle
+      device: 58864092
+  - service: remote.send_command
+    data:
+      entity_id: remote.tv
+      command:
+      - DirectionUp
+      - DirectionDown
+      device: 58864022
+      delay_secs: 1
+bathroom_day_light:
+  sequence:
+  - service: light.turn_on
+    data_template:
+      brightness: "{% if now().strftime('%H')| int >= 22 %}\n  60\n{% elif now().strftime('%H')|\
+        \ int < 7 %}\n  60\n{% elif now().strftime('%H')| int >= 7 %}\n  255\n{% endif\
+        \ %}"
+      transition: 1
+    entity_id: light.bedroom_bathroom_cove_lights
+  - delay: 00:00:01
+  - service: light.turn_on
+    data_template:
+      brightness: "{% if now().strftime('%H')| int >= 22 %}\n  10\n{% elif now().strftime('%H')|\
+        \ int < 7 %}\n  10\n{% elif now().strftime('%H')| int >= 7 %}\n  255\n{% endif\
+        \ %}"
+      transition: 1
+    entity_id: light.bedroom_bathroom_cove_lights
+living_room_off:
+  sequence:
+  - service: light.turn_off
+    data:
+      entity_id: light.living_room_living_room, light.living_room_spot_lights
+  - delay: 00:00:01
+  - service: automation.turn_off
+    data:
+      entity_id: automation.turn_on_living_room_light_motion
+living_room_on:
+  sequence:
+  - service: light.turn_on
+    data:
+      entity_id: light.living_room_living_room, light.living_room_spot_lights
+  - delay: 00:00:01
+  - service: automation.turn_on
+    data:
+      entity_id: automation.turn_on_living_room_light_motion
+bedroom_off:
+  sequence:
+  - service: light.turn_off
+    data:
+      entity_id: light.master_bedroom_bedroom, light.master_bedroom_main_lights
+  - delay: 00:00:01
+  - service: automation.turn_off
+    data:
+      entity_id: automation.turn_on_bedroom_light_motion
+bedroom_on:
+  sequence:
+  - service: light.turn_on
+    data:
+      entity_id: light.master_bedroom_bedroom, light.master_bedroom_main_lights
+  - service: automation.turn_on
+    data:
+      entity_id: automation.turn_on_bedroom_light_motion
+start_kitchen_google:
+  sequence:
+  - service: switch.turn_off
+    data:
+      entity_id: switch.google_music
+  - service: input_select.select_option
+    data:
+      entity_id: input_select.media_player
+      option: kitchen_speakers
+  - delay: 00:00:01
+  - service: switch.turn_on
+    data:
+      entity_id: switch.google_music
+next_google_station_kitchen:
+  sequence:
+  - service: input_select.select_next
+    entity_id: input_select.music
+  - service: tts.google_say
+    entity_id: media_player.kitchen_speakers
+    data_template:
+      message: station {{ states.input_select.music.state }}
+previous_google_station_kitchen:
+  sequence:
+  - service: input_select.select_previous
+    entity_id: input_select.music
+  - service: tts.google_say
+    entity_id: media_player.kitchen_speakers
+    data_template:
+      message: station {{ states.input_select.music.state }}
+current_google_station_kitchen:
+  sequence:
+  - service: tts.google_say
+    entity_id: media_player.kitchen_speakers
+    data_template:
+      message: station {{ states.input_select.music.state }}
+raise_kitchen_volume:
+  sequence:
+  - service: media_player.volume_up
+    entity_id: media_player.kitchen_speakers
+lower_kitchen_volume:
+  sequence:
+  - service: media_player.volume_down
+    entity_id: media_player.kitchen_speakers
+next_track_kitchen:
+  sequence:
+  - service: media_player.media_next_track
+    entity_id: media_player.kitchen_speakers
+previous_track_kitchen:
+  sequence:
+  - service: media_player.media_previous_track
+    entity_id: media_player.kitchen_speakers
+stop_kitchen_music:
+  sequence:
+  - service: media_player.turn_off
+    entity_id: media_player.kitchen_speakers
+  - service: switch.turn_off
+    data:
+      entity_id: switch.google_music
+benji_home:
+  sequence:
+  - service: automation.turn_off
+    entity_id: automation.benji_home
+  - service_template: >
+      {% if is_state('lock.augustlock_locked', 'locked') %}
+        script.unlock_door
+      {% else %}
+        script.do_nothing
+      {% endif %}
+  - service: script.turn_on
+    entity_id: script.benji_greeting_one
+  - service: notify.benji
+    data:
+      title: Welcome Home
+      message: Hello Benji welcome home
+  - service: scene.turn_on
+    entity_id: scene.benjis_home
+  - service: script.turn_tv_on
+  - service: shell_command.stop_bluetooth_benji
+
+benji_not_home:
+  sequence:
+  - entity_id: automation.benji_home
+    service: automation.turn_on
+  - entity_id: automation.benji_not_home
+    service: automation.turn_off
+  - service: notify.benji
+    data:
+      title: You have Left the Home
+      message: See you later
+  - service: shell_command.start_bluetooth_benji
+  - entity_id: input_boolean.benji_home
+    service: input_boolean.turn_off
+  - service: mqtt.publish
+    data:
+      topic: presence/benji
+      payload: not home
+      retain: 'true'
+
+benji_not_home_complete:
+  sequence:
+  - entity_id: automation.benji_home
+    service: automation.turn_on
+  - entity_id: automation.benji_not_home
+    service: automation.turn_off
+  - service: notify.benji
+    data:
+      title: You have Left the Home
+      message: See you later
+  - service: shell_command.start_bluetooth_benji
+  - entity_id: input_boolean.benji_home
+    service: input_boolean.turn_off
+  - service: mqtt.publish
+    data:
+      topic: presence/benji
+      payload: not home
+      retain: 'true'
+  - service: script.were_gone
+
+
+
+bridget_home:
+  sequence:
+  - service: automation.turn_off
+    entity_id: automation.bridget_home
+  - service_template: >
+      {% if is_state('lock.augustlock_locked', 'locked') %}
+        script.unlock_door
+      {% else %}
+        script.do_nothing
+      {% endif %}
+  - service: script.turn_on
+    entity_id: script.bridget_greeting_one
+  - service: scene.turn_on
+    entity_id: scene.bridgets_home
+  - service: notify.bridget
+    data:
+      title: Welcome Home
+      message: Hello Bridget welcome home
+  - service: script.turn_tv_on
+  - service: shell_command.stop_bluetooth_bridget
+
+bridget_not_home:
+  sequence:
+  - entity_id: automation.bridget_home
+    service: automation.turn_on
+  - entity_id: automation.bridget_not_home
+    service: automation.turn_off
+  - service: notify.bridget
+    data:
+      title: You have Left the Home
+      message: See you later
+  - service: shell_command.start_bluetooth_bridget
+  - entity_id: input_boolean.bridget_home
+    service: input_boolean.turn_off
+  - service: mqtt.publish
+    data:
+      topic: presence/bridget
+      payload: not home
+      retain: 'true'
+
+bridget_not_home_complete:
+  sequence:
+  - entity_id: automation.bridget_home
+    service: automation.turn_on
+  - entity_id: automation.bridget_not_home
+    service: automation.turn_off
+  - service: notify.bridget
+    data:
+      title: You have Left the Home
+      message: See you later
+  - service: shell_command.start_bluetooth_bridget
+  - entity_id: input_boolean.bridget_home
+    service: input_boolean.turn_off
+  - service: mqtt.publish
+    data:
+      topic: presence/bridget
+      payload: not home
+      retain: 'true'
+  - service: script.were_gone
+
+benji_home_second:
+  sequence:
+  - service: automation.turn_off
+    entity_id: automation.benji_home
+  - service_template: >
+      {% if is_state('lock.augustlock_locked', 'locked') %}
+        script.unlock_door
+      {% else %}
+        script.do_nothing
+      {% endif %}
+  - service: notify.benji
+    data:
+      title: Welcome Home
+      message: Hello Benji welcome home 2nd
+  - service: shell_command.stop_bluetooth_benji
+bridget_home_second:
+  sequence:
+  - service: automation.turn_off
+    entity_id: automation.bridget_home
+  - service_template: >
+      {% if is_state('lock.augustlock_locked', 'locked') %}
+        script.unlock_door
+      {% else %}
+        script.do_nothing
+      {% endif %}
+  - service: notify.bridget
+    data:
+      title: Welcome Home
+      message: Hello Bridget welcome home 2nd
+  - service: shell_command.stop_bluetooth_bridget
+benji_greeting:
+  sequence:
+  - entity_id: media_player.all_but_living_room
+    service: tts.google_say
+    data:
+      message: Hello Benji, Its great to have you back
+  - delay: 00:00:05
+  - service: switch.turn_off
+    data:
+      entity_id: switch.kitchen_speakers
+benji_greeting_one:
+  sequence:
+  - service: scene.turn_on
+    entity_id: scene.kitchen_set
+  - service: media_player.turn_on
+    entity_id: media_player.kitchen_speakers
+  - delay: 00:00:06
+  - entity_id: media_player.kitchen_speakers
+    service: tts.google_say
+    data:
+      message: ok google, play top hits on all speakers
+  - delay: 00:00:09
+  - service: scene.turn_on
+    entity_id: scene.entrance_volume
+
+
+bridget_greeting:
+  sequence:
+  - entity_id: media_player.all_but_living_room
+    service: tts.google_say
+    data:
+      message: Hello Bridget, Its great to have you back
+  - delay: 00:00:05
+  - service: switch.turn_off
+    data:
+      entity_id: switch.kitchen_speakers
+
+bridget_greeting_one:
+  sequence:
+  - service: scene.turn_on
+    entity_id: scene.kitchen_set
+  - service: media_player.turn_on
+    entity_id: media_player.kitchen_speakers
+  - delay: 00:00:06
+  - entity_id: media_player.kitchen_speakers
+    service: tts.google_say
+    data:
+      message: ok google, play pandora on all speakers
+  - delay: 00:00:09
+  - service: scene.turn_on
+    entity_id: scene.entrance_volume
+
+
+
+unlock_door:
+  sequence:
+  - service: lock.unlock
+    entity_id: lock.augustlock_locked
+
+do_nothing:
+  sequence:
+  - delay: 00:00:01
+
+mqtt_depart:
+  sequence:
+  - data_template:
+      topic: location/scan/depart
+    service: mqtt.publish
+  - delay: 00:00:10
+  - data_template:
+      topic: location/scan/depart
+    service: mqtt.publish
+  - delay: 00:00:20
+  - data_template:
+      topic: location/scan/depart
+    service: mqtt.publish
+  - delay: 00:00:30
+  - data_template:
+      topic: location/scan/depart
+    service: mqtt.publish
+  - delay: 00:00:40
+  - data_template:
+      topic: location/scan/depart
+    service: mqtt.publish
+  - delay: 00:00:20
+#  - service_template: >
+#      {% if states.sensor.benji_bedroom.state | float != states.sensor.benji_living_room.state | float %}
+#        script.mqtt_restart
+#      {% elif states.sensor.bridget_bedroom.state | float != states.sensor.bridget_living_room.state | float  %}
+#        script.mqtt_restart
+#      {% else %}
+#        script.home_status
+#      {% endif %}
+  - service_template: >
+      {% if states.sensor.benji_bedroom.state | float in(range(1,100)) or states.sensor.benji_living_room.state | float in(range(1,100)) %}
+        script.mqtt_restart
+      {% elif states.sensor.bridget_bedroom.state | float in(range(1,100)) or states.sensor.bridget_living_room.state | float in(range(1,100)) %}
+        script.mqtt_restart
+      {% else %}
+        script.do_nothing
+      {% endif %}
+
+mqtt_restart:
+  sequence:
+  - data_template:
+      topic: location/scan/restart
+    service: mqtt.publish
+  - delay: 00:00:40
+  - service_template: >
+      {% if states.sensor.benji_bedroom.state | float != states.sensor.benji_living_room.state | float %}
+        script.mqtt_notify_fail
+      {% elif states.sensor.bridget_bedroom.state | float != states.sensor.bridget_living_room.state | float  %}
+        script.mqtt_notify_fail
+      {% else %}
+        script.home_status
+      {% endif %}
+
+home_status:
+  sequence:
+  - delay: 00:00:01
+  - service_template: >
+      {% if states.sensor.home_occupancy_benji.state | float == 100 %}
+        script.benji_home_state
+      {% elif states.sensor.home_occupancy_benji.state | float == 0 %}
+        script.benji_not_home_state
+      {% else %}
+        script.do_nothing
+      {% endif %}
+  - service_template: >
+      {% if states.sensor.home_occupancy_bridget.state | float == 100 %}
+        script.bridget_home_state
+      {% elif states.sensor.home_occupancy_bridget.state | float == 0 %}
+        script.bridget_not_home_state
+      {% else %}
+        script.do_nothing
+      {% endif %}
+
+mqtt_notify_fail:
+  sequence:
+  - service: script.home_status
+  - service: notify.benji
+    data:
+      title: Sensor Mismatch
+      message: Your sensors are missmatched after a restart
+
+benji_home_state:
+  sequence:
+  - entity_id: automation.benji_home
+    service: automation.turn_off
+  - entity_id: automation.benji_not_home
+    service: automation.turn_on
+
+benji_not_home_state:
+  sequence:
+  - entity_id: automation.benji_home
+    service: automation.turn_on
+  - entity_id: automation.benji_not_home
+    service: automation.turn_off
+  - entity_id: input_boolean.benji_home
+    service: input_boolean.turn_off
+
+bridget_home_state:
+  sequence:
+  - entity_id: automation.bridget_home
+    service: automation.turn_off
+  - entity_id: automation.bridget_not_home
+    service: automation.turn_on
+
+bridget_not_home_state:
+  sequence:
+  - entity_id: automation.bridget_home
+    service: automation.turn_on
+  - entity_id: automation.bridget_not_home
+    service: automation.turn_off
+  - entity_id: input_boolean.bridget_home
+    service: input_boolean.turn_off
+
+
