@@ -96,8 +96,6 @@
     entity_id: light.kitchen_kitchen
     state: 'off'
   action:
-#  - service: light.turn_on
-#    entity_id: light.kitchen_Leds
   - data_template:
       brightness: "{% if now().strftime('%H')| int >= 22 %}\n  0\n{% elif now().strftime('%H')|\
         \ int < 7 %}\n  0\n{% elif now().strftime('%H')| int >= 7 %}\n  255\n{% endif\
@@ -293,6 +291,71 @@
   trigger:
   - at: '10:00:00'
     platform: time
+- id: bedroom_bathroom_audio_up
+  alias: bedroom bathroom audio up
+  trigger:
+  - entity_id: sensor.bedroom_bathroom_audio
+    platform: state
+    to: '8'
+  action:
+  - service: media_player.volume_up
+    data_template:
+      entity_id: media_player.bathroom_speakers
+#      volume_level: '{{ states.media_player.bathroom_speakers.attributes.volume_level + 0.05 }}'
+- id: bedroom_bathroom_audio_down
+  alias: bedroom bathroom audio down
+  trigger:
+  - entity_id: sensor.bedroom_bathroom_audio
+    platform: state
+    to: '16'
+  action:
+  - service: media_player.volume_down
+    data_template:
+      entity_id: media_player.bathroom_speakers
+#      volume_level: '{{ states.media_player.bathroom_speakers.attributes.volume_level - 0.05 }}'
+- id: bedroom_bathroom_audio_off
+  alias: bedroom bathroom audio off
+  trigger:
+  - entity_id: sensor.bedroom_bathroom_audio
+    platform: state
+    to: '4'
+  action:
+  - service: media_player.turn_off
+    data_template:
+      entity_id: media_player.bathroom_speakers
+
+- id: main_bathroom_audio_up
+  alias: main bathroom audio up
+  trigger:
+  - entity_id: sensor.main_bathroom_audio
+    platform: state
+    to: '8'
+  action:
+  - service: media_player.volume_up
+    data_template:
+      entity_id: media_player.bathroom_speaker
+#      volume_level: '{{ states.media_player.bathroom_speaker.attributes.volume_level + 0.05 }}'
+- id: main_bathroom_audio_down
+  alias: main bathroom audio down
+  trigger:
+  - entity_id: sensor.main_bathroom_audio
+    platform: state
+    to: '16'
+  action:
+  - service: media_player.volume_down
+    data_template:
+      entity_id: media_player.bathroom_speaker
+#      volume_level: '{{ states.media_player.bathroom_speaker.attributes.volume_level - 0.05 }}'
+- id: main_bathroom_audio_off
+  alias: main bathroom audio off
+  trigger:
+  - entity_id: sensor.main_bathroom_audio
+    platform: state
+    to: '4'
+  action:
+  - service: media_player.turn_off
+    data_template:
+      entity_id: media_player.bathroom_speaker
 - id: Library_pico_middle_button
   alias: Library pico middle button
   trigger:
@@ -388,7 +451,7 @@
   alias: benji boolean
   trigger:
     platform: mqtt
-    topic: location/omitted
+    topic: location/Redacted Mac Address
   action:
   - entity_id: input_boolean.benji_home
     service: input_boolean.turn_on
@@ -399,7 +462,7 @@
   alias: bridget boolean
   trigger:
     platform: mqtt
-    topic: location/omitted
+    topic: location/Redacted Mac Address
   action:
   - entity_id: input_boolean.bridget_home
     service: input_boolean.turn_on
@@ -480,7 +543,6 @@
   action:
   - entity_id: input_boolean.home_timer_status
     service: input_boolean.turn_on
-
 - id: Benji_Home
   alias: Benji Home
   trigger:
@@ -490,14 +552,13 @@
   - entity_id: input_boolean.benji_home
     platform: state
     to: 'on'
+  - entity_id: binary_sensor.benjiping
+    platform: state
+    to: 'on'
   action:
-  - service_template: >
-      {% if states.sensor.home_occupancy_bridget.state | float < 25 %}
-        script.benji_home
-      {% else %}
-        script.benji_home_second
-      {% endif %}
-
+  - service_template: "{% if states.sensor.home_occupancy_bridget.state | float <\
+      \ 25 %}\n  script.benji_home\n{% else %}\n  script.benji_home_second\n{% endif\
+      \ %}\n"
 - id: benji_not_home
   alias: Benji not Home
   trigger:
@@ -505,14 +566,9 @@
     entity_id: sensor.home_occupancy_benji
     platform: numeric_state
   action:
-  - service_template: >
-      {% if states.sensor.home_occupancy_bridget.state | float < 25 %}
-        script.benji_not_home_complete
-      {% else %}
-        script.benji_not_home
-      {% endif %}
-
-
+  - service_template: "{% if states.sensor.home_occupancy_bridget.state | float <\
+      \ 25 %}\n  script.benji_not_home_complete\n{% else %}\n  script.benji_not_home\n\
+      {% endif %}\n"
 - id: Bridget_Home
   alias: Bridget Home
   trigger:
@@ -522,14 +578,13 @@
   - entity_id: input_boolean.bridget_home
     platform: state
     to: 'on'
+  - entity_id: binary_sensor.bridgetping
+    platform: state
+    to: 'on'
   action:
-  - service_template: >
-      {% if states.sensor.home_occupancy_benji.state | float < 25 %}
-        script.bridget_home
-      {% else %}
-        script.bridget_home_second
-      {% endif %}
-
+  - service_template: "{% if states.sensor.home_occupancy_benji.state | float < 25\
+      \ %}\n  script.bridget_home\n{% else %}\n  script.bridget_home_second\n{% endif\
+      \ %}\n"
 - id: bridget_not_home
   alias: Bridget not Home
   trigger:
@@ -537,13 +592,9 @@
     entity_id: sensor.home_occupancy_bridget
     platform: numeric_state
   action:
-  - service_template: >
-      {% if states.sensor.home_occupancy_benji.state | float < 25 %}
-        script.bridget_not_home_complete
-      {% else %}
-        script.bridget_not_home
-      {% endif %}
-
+  - service_template: "{% if states.sensor.home_occupancy_benji.state | float < 25\
+      \ %}\n  script.bridget_not_home_complete\n{% else %}\n  script.bridget_not_home\n\
+      {% endif %}\n"
 - id: Benji_Home_greeting
   alias: Benji Home Greeting
   initial_state: 'off'
@@ -575,34 +626,32 @@
   - condition: numeric_state
     entity_id: sensor.home_occupancy_bridget
     above: '30'
-
-
 - id: '1535063937633'
   alias: kitchen switch link on
   trigger:
   - entity_id: media_player.kitchen_speakers
     from: 'off'
     platform: state
-    to: 'idle'
+    to: idle
   - entity_id: media_player.kitchen_speakers
-    from: 'idle'
+    from: idle
     platform: state
-    to: 'playing'
+    to: playing
   - entity_id: media_player.kitchen_speakers
-    from: 'idle'
+    from: idle
     platform: state
-    to: 'paused'
-  - entity_id: media_player.kitchen_speakers
-    from: 'off'
-    platform: state
-    to: 'playing'
+    to: paused
   - entity_id: media_player.kitchen_speakers
     from: 'off'
     platform: state
-    to: 'paused'
+    to: playing
+  - entity_id: media_player.kitchen_speakers
+    from: 'off'
+    platform: state
+    to: paused
   - entity_id: media_player.all_speakers
     platform: state
-    to: 'playing'
+    to: playing
   condition: []
   action:
   - data:
@@ -612,15 +661,15 @@
   alias: kitchen switch link off
   trigger:
   - entity_id: media_player.kitchen_speakers
-    from: 'idle'
+    from: idle
     platform: state
     to: 'off'
   - entity_id: media_player.kitchen_speakers
-    from: 'playing'
+    from: playing
     platform: state
     to: 'off'
   - entity_id: media_player.kitchen_speakers
-    from: 'paused'
+    from: paused
     platform: state
     to: 'off'
   - entity_id: media_player.all_speakers
@@ -637,26 +686,26 @@
   - entity_id: media_player.bathroom_speakers
     from: 'off'
     platform: state
-    to: 'idle'
+    to: idle
   - entity_id: media_player.bathroom_speakers
-    from: 'idle'
+    from: idle
     platform: state
-    to: 'playing'
+    to: playing
   - entity_id: media_player.bathroom_speakers
-    from: 'idle'
+    from: idle
     platform: state
-    to: 'paused'
-  - entity_id: media_player.bathroom_speakers
-    from: 'off'
-    platform: state
-    to: 'playing'
+    to: paused
   - entity_id: media_player.bathroom_speakers
     from: 'off'
     platform: state
-    to: 'paused'
+    to: playing
+  - entity_id: media_player.bathroom_speakers
+    from: 'off'
+    platform: state
+    to: paused
   - entity_id: media_player.all_speakers
     platform: state
-    to: 'playing'
+    to: playing
   condition: []
   action:
   - data:
@@ -780,7 +829,6 @@
   - data:
       entity_id: light.hallway_floor_lamps
     service: light.turn_off
-
 - id: power_tv_leds_off
   alias: power tv leds off
   trigger:
@@ -792,7 +840,6 @@
     service: switch.turn_off
   - entity_id: automation.power_tv_leds_on
     service: automation.turn_on
-
 - id: power_tv_leds_on
   alias: power tv leds on
   trigger:
@@ -804,3 +851,14 @@
     service: switch.turn_on
   - entity_id: automation.power_tv_leds_on
     service: automation.turn_off
+- id: '1549139811040'
+  alias: kitchen sync
+  trigger:
+  - entity_id: light.kitchen_kitchen
+    platform: state
+    to: 'off'
+  condition: []
+  action:
+  - data:
+      entity_id: light.kitchen_leds
+    service: light.turn_off
